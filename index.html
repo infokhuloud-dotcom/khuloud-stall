@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Khuloud Stall</title>
+<meta name="theme-color" content="#4B2451">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Khuloud Stall">
+<style>
+  :root {
+    --plum: #4B2451; --plum-d: #321437; --gold: #D4AF37; --gold-l: #F0D48A;
+    --ink: #09060C; --mauve: #735C78; --cream: #FFF9EE; --white: #FBF8F2;
+    --line: #e7dccb; --ok: #2e7d4f; --warn: #b26a00; --bad: #b3261e;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--cream); color: var(--ink);
+    font: 16px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  button { font: inherit; cursor: pointer; border: 0; }
+  input { font: inherit; }
+
+  header { position: sticky; top: 0; z-index: 5; background: var(--plum); color: var(--white);
+    padding: calc(env(safe-area-inset-top) + 8px) 12px 8px; }
+  .hrow { display: flex; align-items: center; gap: 8px; }
+  .brand { font-weight: 700; letter-spacing: .12em; color: var(--gold); }
+  .meta { font-size: 13px; color: var(--gold-l); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sync { font-size: 12px; padding: 3px 8px; border-radius: 99px; background: rgba(255,255,255,.12); white-space: nowrap; }
+  .sync.off { background: #6b3a00; } .sync.ok { background: #1f5136; }
+  .tabs { display: flex; gap: 4px; margin-top: 8px; }
+  .tabs button { flex: 1; padding: 8px; border-radius: 8px; background: transparent; color: var(--gold-l); }
+  .tabs button.on { background: var(--gold); color: var(--ink); font-weight: 600; }
+
+  main { padding: 10px 12px 120px; max-width: 900px; margin: 0 auto; }
+  .tools { display: flex; gap: 6px; margin-bottom: 10px; position: sticky; top: var(--hh, 96px); z-index: 4;
+    background: var(--cream); padding: 6px 0; flex-wrap: wrap; }
+  .tools input { flex: 1 1 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+  .chip { padding: 7px 12px; border-radius: 99px; background: #fff; border: 1px solid var(--line); color: var(--plum); }
+  .chip.on { background: var(--plum); color: #fff; border-color: var(--plum); }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+  .card .top { display: flex; gap: 8px; align-items: center; min-height: 48px; }
+  .card img, .card .ph { width: 44px; height: 44px; object-fit: contain; border-radius: 8px; background: var(--white); flex: none; }
+  .card .ph { display: grid; place-items: center; color: var(--gold); font-weight: 700; background: var(--plum); }
+  .card .nm { font-size: 14px; font-weight: 600; line-height: 1.2; }
+  .card .incart { font-size: 12px; color: var(--ok); font-weight: 600; }
+  .sizes { display: flex; gap: 4px; flex-wrap: wrap; }
+  .sizes button { flex: 1 1 auto; padding: 10px 4px; border-radius: 8px; background: var(--plum); color: #fff; font-size: 14px; font-weight: 600; min-width: 44px; }
+  .sizes button:active { background: var(--gold); color: var(--ink); }
+  .sizes.v button { font-size: 12px; flex-basis: 45%; }
+
+  .cartbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; padding: 10px 12px calc(env(safe-area-inset-bottom) + 10px);
+    background: var(--plum-d); color: #fff; display: flex; gap: 10px; align-items: center; }
+  .cartbar .ct { flex: 1; font-size: 14px; }
+  .cartbar .ct b { color: var(--gold); font-size: 17px; }
+  .btn { padding: 13px 18px; border-radius: 10px; background: var(--gold); color: var(--ink); font-weight: 700; }
+  .btn.sec { background: #fff; color: var(--plum); border: 1px solid var(--line); }
+  .btn.dark { background: var(--plum); color: #fff; }
+  .btn.bad { background: #fff; color: var(--bad); border: 1px solid #e8c4c0; }
+  .btn:disabled { opacity: .4; }
+
+  .sheet { position: fixed; inset: 0; z-index: 10; background: rgba(9,6,12,.55); display: none; align-items: flex-end; justify-content: center; }
+  .sheet.show { display: flex; }
+  .panel { background: var(--cream); width: 100%; max-width: 560px; max-height: 92vh; overflow: auto; border-radius: 16px 16px 0 0;
+    padding: 14px 14px calc(env(safe-area-inset-bottom) + 14px); }
+  .panel h2 { margin: 0 0 10px; font-size: 18px; color: var(--plum); display: flex; justify-content: space-between; align-items: center; }
+  .x { background: none; font-size: 26px; color: var(--mauve); padding: 0 6px; }
+  .line { display: flex; align-items: center; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+  .line .n { flex: 1; font-size: 15px; } .line .n small { color: var(--mauve); display: block; }
+  .qty { display: flex; align-items: center; gap: 4px; }
+  .qty button { width: 38px; height: 38px; border-radius: 8px; background: #fff; border: 1px solid var(--line); font-size: 20px; color: var(--plum); }
+  .qty span { min-width: 22px; text-align: center; font-weight: 700; }
+  label.f { display: block; margin: 14px 0 6px; font-weight: 600; color: var(--plum); font-size: 14px; }
+  .amt { display: flex; align-items: center; background: #fff; border: 2px solid var(--plum); border-radius: 12px; padding: 0 12px; }
+  .amt span { font-size: 24px; color: var(--plum); }
+  .amt input { flex: 1; border: 0; outline: 0; padding: 12px 8px; font-size: 26px; font-weight: 700; background: transparent; min-width: 0; }
+  .pay { display: flex; gap: 6px; } .pay .chip { flex: 1; padding: 11px; text-align: center; }
+  .row { display: flex; gap: 8px; margin-top: 16px; } .row .btn { flex: 1; }
+
+  .qrwrap { position: fixed; inset: 0; z-index: 20; background: #fff; display: none; flex-direction: column; align-items: center;
+    overflow: auto; padding: calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 16px); text-align: center; }
+  .qrwrap.show { display: flex; }
+  .qrwrap .ttl { font-size: 22px; font-weight: 700; color: var(--plum); margin: 4px 0 2px; }
+  .qrwrap .sub { color: var(--mauve); margin-bottom: 12px; }
+  #qr { width: min(78vw, 46vh, 360px); aspect-ratio: 1; }
+  #qr svg { width: 100%; height: 100%; display: block; }
+  .qrwrap .oid { font-weight: 700; margin-top: 10px; letter-spacing: .05em; }
+  .qrwrap .items { font-size: 14px; color: #333; margin: 6px 0 14px; max-width: 420px; }
+  .qrwrap .row { width: 100%; max-width: 420px; flex-wrap: wrap; }
+
+  .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
+  .stat { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 10px; }
+  .stat b { display: block; font-size: 22px; color: var(--plum); }
+  .stat span { font-size: 12px; color: var(--mauve); }
+  .order { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 10px; margin-bottom: 8px; }
+  .order.cx { opacity: .55; }
+  .order .h { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
+  .order .h b { color: var(--plum); }
+  .order .it { font-size: 14px; margin: 6px 0; }
+  .order .acts { display: flex; gap: 6px; } .order .acts button { padding: 8px 10px; font-size: 13px; }
+  .tag { font-size: 11px; padding: 2px 7px; border-radius: 99px; background: #eee; color: #555; }
+  .tag.p { background: #fdebd0; color: var(--warn); } .tag.s { background: #dcefe3; color: var(--ok); } .tag.c { background: #f6dcd9; color: var(--bad); }
+  .datebar { display: flex; gap: 6px; margin-bottom: 10px; align-items: center; }
+  .datebar input { padding: 9px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+
+  .setup .field { margin-bottom: 14px; }
+  .setup input { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+  .setup p.hint { font-size: 13px; color: var(--mauve); margin: 6px 0 0; }
+  .note { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px; font-size: 14px; margin-bottom: 14px; }
+  .empty { text-align: center; color: var(--mauve); padding: 30px 10px; }
+  .toast { position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 10px 16px;
+    border-radius: 10px; z-index: 30; font-size: 14px; display: none; max-width: 90vw; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header id="hdr">
+  <div class="hrow">
+    <span class="brand">KHULOUD</span>
+    <span class="meta" id="meta"></span>
+    <span class="sync" id="sync">…</span>
+  </div>
+  <nav class="tabs">
+    <button data-tab="sell" class="on">Sell</button>
+    <button data-tab="orders">Orders</button>
+    <button data-tab="setup">Setup</button>
+  </nav>
+</header>
+
+<main>
+  <!-- SELL -->
+  <section id="tab-sell">
+    <div class="tools" id="tools">
+      <input id="q" type="search" placeholder="Search a scent…" autocomplete="off">
+      <button class="chip on" data-cat="">All</button>
+      <button class="chip" data-cat="Perfumes">Perfumes</button>
+      <button class="chip" data-cat="Attars">Attars</button>
+    </div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <!-- ORDERS -->
+  <section id="tab-orders" hidden>
+    <div class="datebar">
+      <input type="date" id="day">
+      <button class="btn sec" id="today" style="padding:9px 12px">Today</button>
+      <button class="btn sec" id="syncnow" style="padding:9px 12px;margin-left:auto">Upload now</button>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div id="orders"></div>
+  </section>
+
+  <!-- SETUP -->
+  <section id="tab-setup" class="setup" hidden>
+    <div class="note" id="setupNote"></div>
+    <div class="field"><label class="f">Your name (staff)</label><input id="sStaff" placeholder="e.g. Riya"></div>
+    <div class="field"><label class="f">Stall / event</label><input id="sEvent" placeholder="Diwali Mela"></div>
+    <div class="field"><label class="f">Khuloud WhatsApp number (customers message this)</label>
+      <input id="sWa" inputmode="numeric" placeholder="918368132033"><p class="hint">With country code, no + or spaces.</p></div>
+    <div class="field"><label class="f">Google Sheet link</label>
+      <input id="sSheet" placeholder="https://script.google.com/macros/s/…/exec">
+      <p class="hint">Sales are saved on this phone first and uploaded to the Sheet whenever there's internet.</p></div>
+    <div class="row">
+      <button class="btn" id="save">Save</button>
+      <button class="btn sec" id="test">Test Sheet</button>
+    </div>
+    <div class="row"><button class="btn sec" id="share">Copy setup link for other staff</button></div>
+    <p class="hint" id="dev" style="margin-top:18px"></p>
+  </section>
+</main>
+
+<div class="cartbar" id="cartbar">
+  <div class="ct" id="ct">Tap a size to add</div>
+  <button class="btn" id="openCart" disabled>Review ▸</button>
+</div>
+
+<!-- CART -->
+<div class="sheet" id="cartSheet">
+  <div class="panel">
+    <h2>This customer <button class="x" data-close>×</button></h2>
+    <div id="lines"></div>
+    <label class="f" for="amount">Amount paid</label>
+    <div class="amt"><span>₹</span><input id="amount" type="text" inputmode="numeric" placeholder="0" autocomplete="off"></div>
+    <label class="f">Paid by</label>
+    <div class="pay" id="pay">
+      <button class="chip" data-pay="Cash">Cash</button>
+      <button class="chip" data-pay="UPI">UPI</button>
+      <button class="chip" data-pay="Card">Card</button>
+    </div>
+    <div class="row">
+      <button class="btn bad" id="clear">Clear</button>
+      <button class="btn" id="makeQr" style="flex:2">Show QR ▸</button>
+    </div>
+  </div>
+</div>
+
+<!-- QR -->
+<div class="qrwrap" id="qrwrap">
+  <div class="ttl">Scan for your bill on WhatsApp</div>
+  <div class="sub">Open your camera and point it here</div>
+  <div id="qr"></div>
+  <div class="oid" id="qrOid"></div>
+  <div class="items" id="qrItems"></div>
+  <div class="row">
+    <button class="btn sec" id="copyMsg">Copy message</button>
+    <button class="btn dark" id="qrDone" style="flex:2">Done · Next customer</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="qrcode.js"></script>
+<script src="catalog.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
