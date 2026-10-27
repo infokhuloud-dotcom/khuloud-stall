@@ -43,7 +43,8 @@
 
   function message(o) {
     return [
-      `Hi Khuloud! I just bought from your stall at ${o.event}.`,
+      o.customer ? `Hi Khuloud! This is ${o.customer}. I just bought from your stall at ${o.event}.`
+                 : `Hi Khuloud! I just bought from your stall at ${o.event}.`,
       `Order: ${o.id}`,
       ...o.items.map(it => `- ${itemLabel(it)} x${it.qty}`),
       `Amount paid: ${inr(o.amount)}`,
@@ -128,7 +129,7 @@
   $('#cartSheet').addEventListener('click', e => { if (e.target.id === 'cartSheet') closeSheet(); });
   $('#clear').onclick = () => {
     if (!confirm('Remove everything from this customer\'s cart?')) return;
-    cart = []; pay = ''; $('#amount').value = ''; saveCart(); closeSheet(); renderCartBar(); renderGrid();
+    cart = []; pay = ''; $('#amount').value = ''; $('#cname').value = ''; saveCart(); closeSheet(); renderCartBar(); renderGrid();
   };
 
   $('#makeQr').onclick = () => {
@@ -138,10 +139,11 @@
     if (!S.staff) { toast('Add your name in Setup first'); closeSheet(); showTab('setup'); return; }
     const o = {
       id: nextId(), ts: Date.now(), event: S.event, staff: S.staff, device,
+      customer: $('#cname').value.trim().replace(/\s+/g, ' ').slice(0, 60),
       items: cart.map(c => ({ ...c })), amount, pay, status: 'ok', rev: 1, synced: 0,
     };
     orders.push(o); saveOrders();
-    cart = []; pay = ''; $('#amount').value = ''; saveCart();
+    cart = []; pay = ''; $('#amount').value = ''; $('#cname').value = ''; saveCart();
     closeSheet(); renderCartBar(); renderGrid();
     showQr(o);
     sync();
@@ -156,7 +158,7 @@
     qr.addData(waLink(o), 'Byte');
     qr.make();
     $('#qr').innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
-    $('#qrOid').textContent = `Order ${o.id}`;
+    $('#qrOid').textContent = `Order ${o.id}${o.customer ? ' · ' + o.customer : ''}`;
     $('#qrItems').innerHTML = o.items.map(it => esc(`${itemLabel(it)} ×${it.qty}`)).join('<br>') + `<br><b>${inr(o.amount)}</b>`;
     $('#qrwrap').classList.add('show');
   }
@@ -191,7 +193,7 @@
       const t = new Date(o.ts).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' });
       const tag = o.status === 'cancelled' ? '<span class="tag c">cancelled</span>' : o.synced ? '<span class="tag s">in Sheet</span>' : '<span class="tag p">waiting</span>';
       return `<div class="order${o.status === 'cancelled' ? ' cx' : ''}">
-        <div class="h"><span><b>${esc(o.id)}</b> · ${t} · ${esc(o.staff)}</span>${tag}</div>
+        <div class="h"><span><b>${esc(o.id)}</b> · ${t} · ${esc(o.staff)}${o.customer ? ' · <b>' + esc(o.customer) + '</b>' : ''}</span>${tag}</div>
         <div class="it">${o.items.map(it => esc(`${itemLabel(it)} ×${it.qty}`)).join(', ')}</div>
         <div class="h"><b>${inr(o.amount)}${o.pay ? ' · ' + esc(o.pay) : ''}</b>
           <span class="acts">${o.status === 'cancelled'
@@ -214,7 +216,7 @@
   let syncing = false;
   const row = o => ({
     id: o.id, date: dayKey(o.ts), time: new Date(o.ts).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
-    event: o.event, staff: o.staff, items: o.items.map(it => `${itemLabel(it)} x${it.qty}`).join(', '),
+    event: o.event, staff: o.staff, customer: o.customer || '', items: o.items.map(it => `${itemLabel(it)} x${it.qty}`).join(', '),
     count: itemCount(o.items), amount: o.amount, pay: o.pay, status: o.status, device: o.device, ts: o.ts,
   });
   async function sync(manual) {
@@ -270,6 +272,12 @@
     };
     if (!S.staff) { toast('Please type your name'); $('#sStaff').focus(); return; }
     save('kb_settings', S); renderMeta(); renderSetup(); renderSync(); toast('Saved'); sync();
+  };
+  $('#wipe').onclick = () => {
+    const done = orders.filter(o => o.synced).length, waiting = orders.length - done;
+    if (!done) return toast(waiting ? 'These orders are not in the Sheet yet. Upload them first.' : 'No orders on this phone');
+    if (!confirm(`Remove ${done} uploaded order(s) from this phone?${waiting ? ` ${waiting} not-yet-uploaded order(s) will be kept.` : ''} The Sheet is not changed.`)) return;
+    orders = orders.filter(o => !o.synced); saveOrders(); renderSetup(); renderSync(); toast('Cleared from this phone');
   };
   $('#test').onclick = async () => {
     const url = $('#sSheet').value.trim();

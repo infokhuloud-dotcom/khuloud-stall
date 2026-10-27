@@ -77,6 +77,7 @@
   .amt { display: flex; align-items: center; background: #fff; border: 2px solid var(--plum); border-radius: 12px; padding: 0 12px; }
   .amt span { font-size: 24px; color: var(--plum); }
   .amt input { flex: 1; border: 0; outline: 0; padding: 12px 8px; font-size: 26px; font-weight: 700; background: transparent; min-width: 0; }
+  .cname { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; font-size: 17px; }
   .pay { display: flex; gap: 6px; } .pay .chip { flex: 1; padding: 11px; text-align: center; }
   .row { display: flex; gap: 8px; margin-top: 16px; } .row .btn { flex: 1; }
 
@@ -168,6 +169,8 @@
       <button class="btn sec" id="test">Test Sheet</button>
     </div>
     <div class="row"><button class="btn sec" id="share">Copy setup link for other staff</button></div>
+    <div class="row"><button class="btn bad" id="wipe">Clear old/test orders from this phone</button></div>
+    <p class="hint">Only removes orders already uploaded to the Sheet. It doesn't touch the Sheet.</p>
     <p class="hint" id="dev" style="margin-top:18px"></p>
   </section>
 </main>
@@ -182,6 +185,8 @@
   <div class="panel">
     <h2>This customer <button class="x" data-close>×</button></h2>
     <div id="lines"></div>
+    <label class="f" for="cname">Customer name <span style="font-weight:400;color:var(--mauve)">(optional)</span></label>
+    <input id="cname" class="cname" type="text" placeholder="e.g. Priya" autocomplete="off" autocapitalize="words">
     <label class="f" for="amount">Amount paid</label>
     <div class="amt"><span>₹</span><input id="amount" type="text" inputmode="numeric" placeholder="0" autocomplete="off"></div>
     <label class="f">Paid by</label>

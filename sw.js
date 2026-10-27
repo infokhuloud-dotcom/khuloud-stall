@@ -1,6 +1,6 @@
 // Keeps the app and product pictures on the phone so it opens and works with no signal.
 importScripts('catalog.js');
-const VERSION = 'kstall-v2';
+const VERSION = 'kstall-v3';
 const SHELL = ['./', 'index.html', 'app.js', 'catalog.js', 'qrcode.js', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', e => {
